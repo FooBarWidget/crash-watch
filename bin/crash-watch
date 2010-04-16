@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+require 'crash_watch/gdb_controller'
+
+gdb = CrashWatch::GdbController.new
+begin
+	# Ruby sometimes uses SIGVTARLM for thread scheduling.
+	gdb.execute("handle SIGVTALRM noprint pass")
+	
+	if gdb.attach(ARGV[0])
+		puts "Monitoring PID #{ARGV[0]}..."
+		exit_info = gdb.wait_until_exit
+		puts "Process exited."
+		puts "Exit code = #{exit_info.exit_code}" if exit_info.exit_code
+		puts "Signal = #{exit_info.signal}" if exit_info.signaled?
+		puts "Backtrace = [\n#{exit_info.backtrace}\n]" if exit_info.backtrace
+	else
+		puts "Cannot attach to process."
+	end
+ensure
+	gdb.close
+end
