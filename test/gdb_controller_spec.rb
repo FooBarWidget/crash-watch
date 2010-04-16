@@ -11,6 +11,25 @@ describe CrashWatch::GdbController do
 	
 	after :each do
 		@gdb.close
+		if @process
+			Process.kill('KILL', @process.pid)
+			@process.close
+		end
+	end
+	
+	def run_script_and_wait(code, snapshot_callback = nil, &block)
+		@process = IO.popen(%Q{ruby -e '#{code}'}, 'w')
+		@gdb.attach(@process.pid)
+		thread = Thread.new do
+			sleep 0.1
+			if block
+				block.call
+			end
+			@process.write("\n")
+		end
+		exit_info = @gdb.wait_until_exit(&snapshot_callback)
+		thread.join
+		return exit_info
 	end
 	
 	describe "#execute" do
@@ -22,14 +41,6 @@ describe CrashWatch::GdbController do
 	describe "#attach" do
 		before :each do
 			@process = IO.popen("sleep 9999", "w")
-		end
-		
-		after :each do
-			if @process
-				@gdb.close
-				Process.kill('KILL', @process.pid)
-				@process.close
-			end
 		end
 		
 		it "returns true if attaching worked" do
@@ -44,29 +55,6 @@ describe CrashWatch::GdbController do
 	end
 	
 	describe "#wait_until_exit" do
-		after :each do
-			if @process
-				@gdb.close
-				Process.kill('KILL', @process.pid)
-				@process.close
-			end
-		end
-		
-		def run_script_and_wait(code, &block)
-			@process = IO.popen(%Q{ruby -e '#{code}'}, 'w')
-			@gdb.attach(@process.pid)
-			thread = Thread.new do
-				sleep 0.1
-				if block
-					block.call
-				end
-				@process.write("\n")
-			end
-			exit_info = @gdb.wait_until_exit
-			thread.join
-			return exit_info
-		end
-		
 		it "returns the expected information if the process exited normally" do
 			exit_info = run_script_and_wait('STDIN.readline')
 			exit_info.exit_code.should == 0

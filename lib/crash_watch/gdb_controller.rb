@@ -2,12 +2,13 @@ module CrashWatch
 
 class GdbController
 	class ExitInfo
-		attr_reader :exit_code, :signal, :backtrace
+		attr_reader :exit_code, :signal, :backtrace, :snapshot
 		
-		def initialize(exit_code, signal, backtrace)
+		def initialize(exit_code, signal, backtrace, snapshot)
 			@exit_code = exit_code
 			@signal = signal
 			@backtrace = backtrace
+			@snapshot = snapshot
 		end
 		
 		def signaled?
@@ -67,11 +68,50 @@ class GdbController
 		return result !~ /(No such process|Unable to access task)/
 	end
 	
+	def call(code)
+		result = execute("call #{code}")
+		result =~ /= (.*)$/
+		return $1
+	end
+	
+	def ruby_backtrace
+		filename = "/tmp/gdb-capture.#{@pid}.txt"
+		
+		orig_stdout_fd_copy = call("(int) dup(1)")
+		new_stdout = call(%Q{(void *) fopen("#{filename}", "w")})
+		new_stdout_fd = call("(int) fileno(#{new_stdout})")
+		call("(int) dup2(#{new_stdout_fd}, 1)")
+		
+		# Let's hope stdout is set to line buffered or unbuffered mode...
+		call("(void) rb_backtrace()")
+		
+		call("(int) dup2(#{orig_stdout_fd_copy}, 1)")
+		call("(int) fclose(#{new_stdout})")
+		call("(int) close(#{orig_stdout_fd_copy})")
+		
+		if File.exist?(filename)
+			result = File.read(filename)
+			result.strip!
+			if result.empty?
+				return nil
+			else
+				return result
+			end
+		else
+			return nil
+		end
+	ensure
+		if filename
+			File.unlink(filename) rescue nil
+		end
+	end
+	
 	def wait_until_exit
 		execute("break _exit")
 		
 		signal = nil
 		backtraces = nil
+		snapshot = nil
 		
 		while true
 			result = execute("continue")
@@ -81,6 +121,7 @@ class GdbController
 				if backtraces.empty?
 					backtraces = execute("bt full").strip
 				end
+				snapshot = yield(self) if block_given?
 				# Maybe the process will ignore this signal, so save
 				# current status, continue, and check whether the
 				# process exits later.
@@ -88,29 +129,30 @@ class GdbController
 				if $1 == signal
 					# Looks like the signal we trapped earlier
 					# caused an exit.
-					return ExitInfo.new(nil, signal, backtraces)
+					return ExitInfo.new(nil, signal, backtraces, snapshot)
 				else
-					return ExitInfo.new(nil, signal, nil)
+					return ExitInfo.new(nil, signal, nil, snapshot)
 				end
 			elsif result =~ /^Breakpoint .*? _exit /
 				backtraces = execute("thread apply all bt full").strip
 				if backtraces.empty?
 					backtraces = execute("bt full").strip
 				end
+				snapshot = yield(self) if block_given?
 				result = execute("continue")
 				if result =~ /^Program exited with code (\d+)\.$/
-					return ExitInfo.new($1.to_i, nil, backtraces)
+					return ExitInfo.new($1.to_i, nil, backtraces, snapshot)
 				elsif result =~ /^Program exited normally/
-					return ExitInfo.new(0, nil, backtraces)
+					return ExitInfo.new(0, nil, backtraces, snapshot)
 				else
-					return ExitInfo.new(nil, nil, backtraces)
+					return ExitInfo.new(nil, nil, backtraces, snapshot)
 				end
 			elsif result =~ /^Program exited with code (\d+)\.$/
-				return ExitInfo.new($1.to_i, nil, nil)
+				return ExitInfo.new($1.to_i, nil, nil, nil)
 			elsif result =~ /^Program exited normally/
-				return ExitInfo.new(0, nil, nil)
+				return ExitInfo.new(0, nil, nil, nil)
 			else
-				return ExitInfo.new(nil, nil, nil)
+				return ExitInfo.new(nil, nil, nil, nil)
 			end
 		end
 	end
