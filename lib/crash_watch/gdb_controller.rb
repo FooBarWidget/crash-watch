@@ -65,7 +65,7 @@ class GdbController
 		pid = pid.to_s.strip
 		raise ArgumentError if pid.empty?
 		result = execute("attach #{pid}")
-		return result !~ /(No such process|Unable to access task)/
+		return result !~ /(No such process|Unable to access task|Operation not permitted)/
 	end
 	
 	def call(code)
