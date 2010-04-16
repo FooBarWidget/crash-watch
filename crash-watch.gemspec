@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
 		"lib/**/*",
 		"test/**/*"
 	]
-	s.homepage = %q{http://money.rubyforge.org/}
+	s.homepage = "http://github.com/FooBarWidget/crash-watch"
 	s.rdoc_options = ["--charset=UTF-8"]
 	s.executables = ["crash-watch"]
 	s.require_paths = ["lib"]

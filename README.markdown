@@ -33,3 +33,21 @@ You must also have GDB installed. Mac OS X already has it by default. If you're 
     #3  0x00000001000009e4 in main ()
     No symbol table info available.
     ]
+
+## Goodie: GDB controller
+
+I've written a small library for controlling gdb, which `crash-watch` uses internally. With CrashWatch::GdbController you can send arbitrary commands to gdb and also get its response.
+
+Instantiate with:
+
+    require 'crash_watch/gdb_controller'
+    gdb = CrashWatch::GdbController.new
+
+This will spawn a new GDB process. Use `#execute` to execute arbitary GDB commands. Whatever the command prints to stdout and stderr will be available in the result string.
+
+    gdb.execute("bt")        # => backtrace string
+    gdb.execute("p 1 + 2")   # => "$1 = 3\n"
+
+Call `#close` when you no longer need it.
+
+    gdb.close
