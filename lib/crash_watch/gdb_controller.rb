@@ -54,14 +54,18 @@ class GdbController
 		return result
 	end
 	
+	def closed?
+		return !@pid
+	end
+	
 	def close
-		if @pid
+		if !closed?
 			begin
-				result = execute("detach", 5)
-				result = execute("quit", 5) if @pid
+				execute("detach", 5)
+				execute("quit", 5) if !closed?
 			rescue Errno::EPIPE
 			end
-			if @pid
+			if !closed?
 				@in.close
 				@out.close
 				Process.waitpid(@pid)
@@ -71,7 +75,7 @@ class GdbController
 	end
 	
 	def close!
-		if @pid
+		if !closed?
 			@in.close
 			@out.close
 			Process.kill('KILL', @pid)
