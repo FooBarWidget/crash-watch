@@ -33,7 +33,6 @@ You must also have GDB installed. Mac OS X already has it by default. If you're 
         No symbol table info available.
         #3  0x00000001000009e4 in main ()
         No symbol table info available.
-    ]
 
 While monitoring the process, you may interrupt `crash-watch` by pressing Ctrl-C. `crash-watch` will then detach from the process, which will then continue normally. You may re-attach `crash-watch` later.
 
