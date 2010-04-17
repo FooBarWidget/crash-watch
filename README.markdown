@@ -3,6 +3,7 @@
 * Do you have (server) processes that sometimes crash for mysterious reasons?
 * Can you not figure out why?
 * Do they not print any error messages to their log files upon crashing?
+* Are debuggers complicated, scary things that you'd rather avoid?
 
 `crash-watch` to the rescue! This little program will monitor a specified process and wait until it crashes. It will then print useful information such as its exit status, what signal caused it to abort, and its backtrace.
 
@@ -33,6 +34,8 @@ You must also have GDB installed. Mac OS X already has it by default. If you're 
         #3  0x00000001000009e4 in main ()
         No symbol table info available.
     ]
+
+While monitoring the process, you may interrupt `crash-watch` by pressing Ctrl-C. `crash-watch` will then detach from the process, which will then continue normally. You may re-attach `crash-watch` later.
 
 ## Goodie: GDB controller
 
