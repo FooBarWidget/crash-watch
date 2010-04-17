@@ -26,6 +26,7 @@ class GdbController
 	end
 	
 	def execute(command_string, timeout = nil)
+		raise "GDB session is already closed" if !@pid
 		puts "gdb write #{command_string.inspect}" if @debug
 		@in.puts(command_string)
 		@in.puts("echo \\n#{END_OF_RESPONSE_MARKER}\\n")
@@ -42,6 +43,7 @@ class GdbController
 						result << line
 					end
 				else
+					close!
 					done = true
 					result = nil
 				end
@@ -56,16 +58,23 @@ class GdbController
 		if @pid
 			begin
 				result = execute("detach", 5)
-				result = execute("quit", 5) if result
+				result = execute("quit", 5) if @pid
 			rescue Errno::EPIPE
 			end
+			if @pid
+				@in.close
+				@out.close
+				Process.waitpid(@pid)
+				@pid = nil
+			end
+		end
+	end
+	
+	def close!
+		if @pid
 			@in.close
 			@out.close
-			if !result
-				# gdb didn't respond to our detach/quit command
-				# so kill it.
-				Process.kill('KILL', @pid)
-			end
+			Process.kill('KILL', @pid)
 			Process.waitpid(@pid)
 			@pid = nil
 		end
