@@ -1,6 +1,8 @@
+require File.expand_path('lib/crash_watch/version', File.dirname(__FILE__))
+
 Gem::Specification.new do |s|
 	s.name = "crash-watch"
-	s.version = "1.0.0"
+	s.version = CrashWatch::VERSION_STRING
 	s.authors = ["Hongli Lai"]
 	s.date = "2010-04-16"
 	s.description = "Monitor processes and display useful information when they crash."
