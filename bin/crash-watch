@@ -33,6 +33,9 @@ elsif options[:version]
 	require 'crash_watch/version'
 	puts "crash-watch version #{CrashWatch::VERSION_STRING}"
 	exit
+elsif ARGV.size != 1
+	puts parser
+	exit 1
 end
 
 require 'crash_watch/gdb_controller'
@@ -55,6 +58,7 @@ begin
 		end
 	else
 		puts "Cannot attach to process."
+		exit 2
 	end
 ensure
 	gdb.close
