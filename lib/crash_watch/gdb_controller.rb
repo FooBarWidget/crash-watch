@@ -25,7 +25,7 @@ class GdbController
 		execute("set prompt ")
 	end
 	
-	def execute(command_string)
+	def execute(command_string, timeout = nil)
 		puts "gdb write #{command_string.inspect}" if @debug
 		@in.puts(command_string)
 		@in.puts("echo \\n#{END_OF_RESPONSE_MARKER}\\n")
@@ -33,12 +33,17 @@ class GdbController
 		result = ""
 		while !done
 			begin
-				line = @out.readline
-				puts "gdb read #{line.inspect}" if @debug
-				if line == "#{END_OF_RESPONSE_MARKER}\n"
-					done = true
+				if select([@out], nil, nil, timeout)
+					line = @out.readline
+					puts "gdb read #{line.inspect}" if @debug
+					if line == "#{END_OF_RESPONSE_MARKER}\n"
+						done = true
+					else
+						result << line
+					end
 				else
-					result << line
+					done = true
+					result = nil
 				end
 			rescue EOFError
 				done = true
@@ -50,12 +55,17 @@ class GdbController
 	def close
 		if @pid
 			begin
-				execute("detach")
-				execute("quit")
+				result = execute("detach", 5)
+				result = execute("quit", 5) if result
 			rescue Errno::EPIPE
 			end
 			@in.close
 			@out.close
+			if !result
+				# gdb didn't respond to our detach/quit command
+				# so kill it.
+				Process.kill('KILL', @pid)
+			end
 			Process.waitpid(@pid)
 			@pid = nil
 		end
@@ -139,7 +149,10 @@ class GdbController
 					backtraces = execute("bt full").strip
 				end
 				snapshot = yield(self) if block_given?
-				result = execute("continue")
+				# On OS X, gdb may fail to return from the 'continue' command
+				# even though the process exited. Kernel bug? In any case,
+				# we put a timeout here so that we don't wait indefinitely.
+				result = execute("continue", 10)
 				if result =~ /^Program exited with code (\d+)\.$/
 					return ExitInfo.new($1.to_i, nil, backtraces, snapshot)
 				elsif result =~ /^Program exited normally/
