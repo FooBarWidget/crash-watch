@@ -21,17 +21,17 @@ You must also have GDB installed. Mac OS X already has it by default. If you're 
     Monitoring PID <PID>...
     (...some time later, <PID> exits...)
     Process exited.
-    Exit code = 0
-    Backtrace = [
-    Thread 1 (process 95205):
-    #0  0x00007fff87ea1db0 in _exit ()
-    No symbol table info available.
-    #1  0x000000010002a260 in ruby_stop ()
-    No symbol table info available.
-    #2  0x0000000100031a54 in ruby_run ()
-    No symbol table info available.
-    #3  0x00000001000009e4 in main ()
-    No symbol table info available.
+    Exit code: 0
+    Backtrace:
+        Thread 1 (process 95205):
+        #0  0x00007fff87ea1db0 in _exit ()
+        No symbol table info available.
+        #1  0x000000010002a260 in ruby_stop ()
+        No symbol table info available.
+        #2  0x0000000100031a54 in ruby_run ()
+        No symbol table info available.
+        #3  0x00000001000009e4 in main ()
+        No symbol table info available.
     ]
 
 ## Goodie: GDB controller

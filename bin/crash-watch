@@ -10,9 +10,12 @@ begin
 		puts "Monitoring PID #{ARGV[0]}..."
 		exit_info = gdb.wait_until_exit
 		puts "Process exited."
-		puts "Exit code = #{exit_info.exit_code}" if exit_info.exit_code
-		puts "Signal = #{exit_info.signal}" if exit_info.signaled?
-		puts "Backtrace = [\n#{exit_info.backtrace}\n]" if exit_info.backtrace
+		puts "Exit code: #{exit_info.exit_code}" if exit_info.exit_code
+		puts "Signal: #{exit_info.signal}" if exit_info.signaled?
+		if exit_info.backtrace
+			puts "Backtrace:"
+			puts "    " << exit_info.backtrace.gsub(/\n/, "\n    ")
+		end
 	else
 		puts "Cannot attach to process."
 	end
