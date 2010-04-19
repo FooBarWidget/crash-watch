@@ -49,7 +49,7 @@ begin
 	if gdb.attach(ARGV[0])
 		puts "Monitoring PID #{ARGV[0]}..."
 		exit_info = gdb.wait_until_exit
-		puts "Process exited."
+		puts "Process exited at #{Time.now}."
 		puts "Exit code: #{exit_info.exit_code}" if exit_info.exit_code
 		puts "Signal: #{exit_info.signal}" if exit_info.signaled?
 		if exit_info.backtrace
