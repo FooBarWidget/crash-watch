@@ -17,6 +17,7 @@ class GdbController
 	end
 	
 	END_OF_RESPONSE_MARKER = '--------END_OF_RESPONSE--------'
+	REALLY_FATAL_SIGNALS = ['EXC_BAD_INSTRUCTION', 'SIGILL']
 	
 	attr_accessor :debug
 	
@@ -145,6 +146,14 @@ class GdbController
 					backtraces = execute("bt full").strip
 				end
 				snapshot = yield(self) if block_given?
+				
+				if REALLY_FATAL_SIGNALS.include?(signal)
+					# This signal is guaranteed to be fatal so don't
+					# continue the process in hope of getting its
+					# exit code.
+					return ExitInfo.new(nil, signal, backtraces, snapshot)
+				end
+				# else:
 				# Maybe the process will ignore this signal, so save
 				# current status, continue, and check whether the
 				# process exits later.
