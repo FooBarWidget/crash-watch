@@ -17,7 +17,6 @@ class GdbController
 	end
 	
 	END_OF_RESPONSE_MARKER = '--------END_OF_RESPONSE--------'
-	REALLY_FATAL_SIGNALS = ['EXC_BAD_INSTRUCTION', 'SIGILL']
 	
 	attr_accessor :debug
 	
@@ -98,6 +97,10 @@ class GdbController
 		return $1
 	end
 	
+	def program_counter
+		return execute("p/x $pc").gsub(/.* = /, '')
+	end
+	
 	def ruby_backtrace
 		filename = "/tmp/gdb-capture.#{@pid}.txt"
 		
@@ -147,16 +150,32 @@ class GdbController
 				end
 				snapshot = yield(self) if block_given?
 				
-				if REALLY_FATAL_SIGNALS.include?(signal)
-					# This signal is guaranteed to be fatal so don't
-					# continue the process in hope of getting its
-					# exit code.
+				# This signal may or may not be immediately fatal; the
+				# signal might be ignored by the process, or the process
+				# has some clever signal handler that fixes the state,
+				# or maybe the signal handler must run some cleanup code
+				# before killing the process. Let's find out by running
+				# the next machine instruction.
+				old_program_counter = program_counter
+				result = execute("stepi")
+				if result =~ /^Program received signal .+?,/
+					# Yes, it was fatal. Here we don't care whether the
+					# instruction caused a different signal. The last
+					# one is probably what we're interested in.
 					return ExitInfo.new(nil, signal, backtraces, snapshot)
+				elsif result =~ /^Program (terminated|exited)/ || result =~ /^Breakpoint .*? _exit/
+					# Running the next instruction causes the program to terminate.
+					# Not sure what's going on but the previous signal and
+					# backtrace is probably what we're interested in.
+					return ExitInfo.new(nil, signal, backtraces, snapshot)
+				elsif old_program_counter == program_counter
+					# The process cannot continue but we're not sure what GDB
+					# is telling us.
+					raise "Unexpected GDB output: #{result}"
 				end
 				# else:
-				# Maybe the process will ignore this signal, so save
-				# current status, continue, and check whether the
-				# process exits later.
+				# The signal doesn't isn't immediately fatal, so save current
+				# status, continue, and check whether the process exits later.
 			elsif result =~ /^Program terminated with signal (.+?),/
 				if $1 == signal
 					# Looks like the signal we trapped earlier
