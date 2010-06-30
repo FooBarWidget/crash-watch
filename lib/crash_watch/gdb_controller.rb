@@ -101,6 +101,19 @@ class GdbController
 		return execute("p/x $pc").gsub(/.* = /, '')
 	end
 	
+	def current_thread
+		execute("thread") =~ /Current thread is (.+?) /
+		return $1
+	end
+	
+	def current_thread_backtrace
+		return execute("bt full").strip
+	end
+	
+	def all_threads_backtraces
+		return execute("thread apply all bt full").strip
+	end
+	
 	def ruby_backtrace
 		filename = "/tmp/gdb-capture.#{@pid}.txt"
 		

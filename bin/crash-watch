@@ -10,6 +10,9 @@ parser = OptionParser.new do |opts|
 	opts.on("-d", "--debug", "Show GDB commands that crash-watch sends.") do
 		options[:debug] = true
 	end
+	opts.on("--dump", "Dump current process backtrace and exit immediately.") do
+		options[:dump] = true
+	end
 	opts.on("-v", "--version", "Show version number.") do
 		options[:version] = true
 	end
@@ -47,14 +50,22 @@ begin
 	gdb.execute("handle SIGVTALRM noprint pass")
 	
 	if gdb.attach(ARGV[0])
-		puts "Monitoring PID #{ARGV[0]}..."
-		exit_info = gdb.wait_until_exit
-		puts "Process exited at #{Time.now}."
-		puts "Exit code: #{exit_info.exit_code}" if exit_info.exit_code
-		puts "Signal: #{exit_info.signal}" if exit_info.signaled?
-		if exit_info.backtrace
-			puts "Backtrace:"
-			puts "    " << exit_info.backtrace.gsub(/\n/, "\n    ")
+		if options[:dump]
+			puts "Current thread (#{gdb.current_thread}) backtrace:"
+			puts "    " << gdb.current_thread_backtrace.gsub(/\n/, "\n    ")
+			puts
+			puts "All thread backtraces:"
+			puts "    " << gdb.all_threads_backtraces.gsub(/\n/, "\n    ")
+		else
+			puts "Monitoring PID #{ARGV[0]}..."
+			exit_info = gdb.wait_until_exit
+			puts "Process exited at #{Time.now}."
+			puts "Exit code: #{exit_info.exit_code}" if exit_info.exit_code
+			puts "Signal: #{exit_info.signal}" if exit_info.signaled?
+			if exit_info.backtrace
+				puts "Backtrace:"
+				puts "    " << exit_info.backtrace.gsub(/\n/, "\n    ")
+			end
 		end
 	else
 		puts "Cannot attach to process."
