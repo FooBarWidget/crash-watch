@@ -20,6 +20,16 @@ class GdbController
 	
 	attr_accessor :debug
 	
+	def self.gdb_installed?
+		ENV['PATH'].to_s.split(/:+/).each do |path|
+			filename = "#{path}/gdb"
+			if File.file?(filename) && File.executable?(filename)
+				return true
+			end
+		end
+		return false
+	end
+	
 	def initialize
 		@pid, @in, @out = popen_command("gdb", "-n", "-q")
 		execute("set prompt ")

@@ -42,6 +42,12 @@ elsif ARGV.size != 1
 end
 
 require 'crash_watch/gdb_controller'
+if !CrashWatch::GdbController.gdb_installed?
+	abort "*** ERROR ***: 'gdb' isn't installed. Please install it first.\n" +
+		"       Debian/Ubuntu: sudo apt-get install gdb\n" +
+		"RedHat/CentOS/Fedora: sudo yum install gdb\n" +
+		"            Mac OS X: please install the Developer Tools or XCode\n"
+end
 gdb = CrashWatch::GdbController.new
 begin
 	gdb.debug = options[:debug]
