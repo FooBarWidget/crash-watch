@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
 	s.name = "crash-watch"
 	s.version = CrashWatch::VERSION_STRING
 	s.authors = ["Hongli Lai"]
-	s.date = "2010-04-16"
+	s.date = "2011-03-11"
 	s.description = "Monitor processes and display useful information when they crash."
 	s.summary = "Monitor processes and display useful information when they crash"
 	s.email = "hongli@phusion.nl"
@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
 		"lib/**/*",
 		"test/**/*"
 	]
-	s.homepage = "http://github.com/FooBarWidget/crash-watch"
+	s.homepage = "https://github.com/FooBarWidget/crash-watch"
 	s.rdoc_options = ["--charset=UTF-8"]
 	s.executables = ["crash-watch"]
 	s.require_paths = ["lib"]
