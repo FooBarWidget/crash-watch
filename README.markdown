@@ -36,6 +36,8 @@ You must also have GDB installed. Mac OS X already has it by default. If you're 
 
 While monitoring the process, you may interrupt `crash-watch` by pressing Ctrl-C. `crash-watch` will then detach from the process, which will then continue normally. You may re-attach `crash-watch` later.
 
+Consult `crash-watch --help` for more usage options.
+
 ## Goodie: GDB controller
 
 I've written a small library for controlling gdb, which `crash-watch` uses internally. With CrashWatch::GdbController you can send arbitrary commands to gdb and also get its response.
