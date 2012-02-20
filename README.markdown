@@ -38,6 +38,17 @@ While monitoring the process, you may interrupt `crash-watch` by pressing Ctrl-C
 
 Consult `crash-watch --help` for more usage options.
 
+## Dumping live backtrace
+
+Instead of waiting until a process crashes, you can also dump a live backtrace of a process. `crash-watch` will immediately exit after dumping the backtrace, letting the process continue as normally.
+
+    $ crash-watch --dump <PID>
+    Current thread (1) backtrace:
+        #0  0x00007fff81fd9464 in read ()
+        No symbol table info available.
+        #1  0x0000000100060d3e in ?? ()
+        No symbol table info available.
+
 ## Goodie: GDB controller
 
 I've written a small library for controlling gdb, which `crash-watch` uses internally. With CrashWatch::GdbController you can send arbitrary commands to gdb and also get its response.
