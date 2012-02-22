@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
 	s.name = "crash-watch"
 	s.version = CrashWatch::VERSION_STRING
 	s.authors = ["Hongli Lai"]
-	s.date = "2011-03-11"
+	s.date = "2012-02-22"
 	s.description = "Monitor processes and display useful information when they crash."
 	s.summary = "Monitor processes and display useful information when they crash"
 	s.email = "hongli@phusion.nl"
