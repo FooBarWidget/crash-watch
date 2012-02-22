@@ -1,3 +1,4 @@
+# encoding: binary
 module CrashWatch
 
 class GdbController
@@ -259,6 +260,8 @@ private
 		end
 		a.close
 		d.close
+		b.binmode
+		c.binmode
 		return [pid, b, c]
 	end
 end
