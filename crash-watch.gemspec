@@ -4,10 +4,10 @@ Gem::Specification.new do |s|
 	s.name = "crash-watch"
 	s.version = CrashWatch::VERSION_STRING
 	s.authors = ["Hongli Lai"]
-	s.date = "2012-02-22"
+	s.date = "2013-03-11"
 	s.description = "Monitor processes and display useful information when they crash."
 	s.summary = "Monitor processes and display useful information when they crash"
-	s.email = "hongli@phusion.nl"
+	s.email = "software-signing@phusion.nl"
 	s.files = Dir[
 		"README.markdown",
 		"LICENSE.txt",

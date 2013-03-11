@@ -1,3 +1,3 @@
 module CrashWatch
-	VERSION_STRING = '1.1.3'
+	VERSION_STRING = '1.1.4'
 end

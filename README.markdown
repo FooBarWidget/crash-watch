@@ -16,6 +16,12 @@ You must also have GDB installed. Mac OS X already has it by default. If you're 
     apt-get install gdb
     yum install gdb
 
+## Cryptographic verification
+
+Our gem is signed using PGP with the [Phusion Software Signing key](http://www.phusion.nl/about/gpg). That key in turn is signed by [the rubygems-openpgp Certificate Authority](http://www.rubygems-openpgp-ca.org/).
+
+You can verify the authenticity of the gem by following [The Complete Guide to Verifying Gems with rubygems-openpgp](http://www.rubygems-openpgp-ca.org/blog/the-complete-guide-to-verifying-gems-with-rubygems-openpgp.html).
+
 ## Sample usage
 
     $ crash-watch <PID>
