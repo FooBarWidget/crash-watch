@@ -1,5 +1,5 @@
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + "/lib"))
-require 'crash-watch/version'
+require 'crash_watch/version'
 
 desc "Build, sign & upload gem"
 task 'package:release' do
