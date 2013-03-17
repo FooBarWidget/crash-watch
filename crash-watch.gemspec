@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
 	s.files = Dir[
 		"README.markdown",
 		"LICENSE.txt",
+		"Rakefile",
 		"crash-watch.gemspec",
 		"bin/**/*",
 		"lib/**/*",
