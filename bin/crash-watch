@@ -75,7 +75,13 @@ begin
 			end
 		end
 	else
-		puts "Cannot attach to process."
+		puts "ERROR: Cannot attach to process."
+		if File.exist?("/proc/sys/kernel/yama/ptrace_scope")
+			puts
+			puts "This may be the result of kernel ptrace() hardening. Try disabling it with:"
+			puts "  sudo sh -c 'echo 0 > /proc/sys/kernel/yama/ptrace_scope'"
+			puts "See http://askubuntu.com/questions/41629/after-upgrade-gdb-wont-attach-to-process for more information."
+		end
 		exit 2
 	end
 ensure
