@@ -53,7 +53,7 @@ PKG_DIR         = string_option('PKG_DIR', "pkg")
 DEBIAN_NAME     = PACKAGE_NAME
 ALL_DISTRIBUTIONS  = ["raring", "precise", "lucid"]
 ORIG_TARBALL_FILES = lambda do
-	require 'crash-watch/packaging'
+	require 'crash_watch/packaging'
 	Dir[*CRASH_WATCH_FILES] - Dir[*CRASH_WATCH_EXCLUDE_FILES]
 end
 

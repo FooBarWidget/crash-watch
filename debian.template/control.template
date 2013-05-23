@@ -12,7 +12,7 @@ XS-Ruby-Versions: all
 Package: crash-watch
 Architecture: all
 XB-Ruby-Versions: ${ruby:Versions}
-Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter, crash-watch
+Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter, gdb
 Description: Process crash watcher and backtrace dumper
  Monitor processes and display useful information when they crash.
  Also capable of displaying backtraces for existing processes.
