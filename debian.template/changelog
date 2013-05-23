@@ -1,0 +1,5 @@
+crash-watch (1.1.6-1) precise; urgency=low
+
+  * Initial packaging
+
+ -- Hongli Lai <hongli@phusion.nl>  Thu, 23 May 2013 21:10:12 +0200
