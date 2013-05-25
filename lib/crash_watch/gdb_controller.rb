@@ -1,5 +1,16 @@
 # encoding: binary
+require 'rbconfig'
+
 module CrashWatch
+
+class Error < StandardError
+end
+
+class GdbNotFound < Error
+end
+
+class GdbBroken < Error
+end
 
 class GdbController
 	class ExitInfo
@@ -20,19 +31,9 @@ class GdbController
 	END_OF_RESPONSE_MARKER = '--------END_OF_RESPONSE--------'
 	
 	attr_accessor :debug
-	
-	def self.gdb_installed?
-		ENV['PATH'].to_s.split(/:+/).each do |path|
-			filename = "#{path}/gdb"
-			if File.file?(filename) && File.executable?(filename)
-				return true
-			end
-		end
-		return false
-	end
-	
+
 	def initialize
-		@pid, @in, @out = popen_command("gdb", "-n", "-q")
+		@pid, @in, @out = popen_command(find_gdb, "-n", "-q")
 		execute("set prompt ")
 	end
 	
@@ -263,6 +264,57 @@ private
 		b.binmode
 		c.binmode
 		return [pid, b, c]
+	end
+
+	def find_gdb
+		result = nil
+		if ENV['GDB'] && File.executable?(ENV['GDB'])
+			result = ENV['GDB']
+		else
+			ENV['PATH'].to_s.split(/:+/).each do |path|
+				filename = "#{path}/gdb"
+				if File.file?(filename) && File.executable?(filename)
+					result = filename
+					break
+				end
+			end
+		end
+
+		puts "Found gdb at: #{result}" if result
+
+		config = defined?(RbConfig) ? RbConfig::CONFIG : Config::CONFIG
+		if config['target_os'] =~ /freebsd/ && result == "/usr/bin/gdb"
+			# /usr/bin/gdb on FreeBSD is broken:
+			# https://github.com/FooBarWidget/crash-watch/issues/1
+			# Look for a newer one that's installed from ports.
+			puts "#{result} is broken on FreeBSD. Looking for an alternative..."
+			result = nil
+			["/usr/local/bin/gdb76", "/usr/local/bin/gdb66"].each do |candidate|
+				if File.executable?(candidate)
+					result = candidate
+					break
+				end
+			end
+
+			if result.nil?
+				raise GdbBroken,
+					"*** ERROR ***: '/usr/bin/gdb' is broken on FreeBSD. " +
+					"Please install the one from the devel/gdb port instead. " +
+					"If you want to use another gdb"
+			else
+				puts "Found gdb at: #{result}" if result
+				return result
+			end
+		elsif result.nil?
+			raise GdbNotFound,
+				"*** ERROR ***: 'gdb' isn't installed. Please install it first.\n" +
+				"       Debian/Ubuntu: sudo apt-get install gdb\n" +
+				"RedHat/CentOS/Fedora: sudo yum install gdb\n" +
+				"            Mac OS X: please install the Developer Tools or XCode\n" +
+				"             FreeBSD: use the devel/gdb port\n"
+		else
+			return result
+		end
 	end
 end
 
