@@ -2,16 +2,14 @@ Source: crash-watch
 Section: devel
 Priority: extra
 Maintainer: Hongli Lai <hongli@phusion.nl>
-Build-Depends: debhelper (>= 7.0.50~), gem2deb (>= 0.2.0~)
+Build-Depends: debhelper (>= 7.0.50~)
 Standards-Version: 3.9.3
 Homepage: https://github.com/FooBarWidget/crash-watch
 Vcs-Git: git://github.com/FooBarWidget/crash-watch.git
 Vcs-Browser: https://github.com/FooBarWidget/crash-watch
-XS-Ruby-Versions: all
 
 Package: crash-watch
 Architecture: all
-XB-Ruby-Versions: ${ruby:Versions}
 Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter, gdb
 Description: Process crash watcher and backtrace dumper
  Monitor processes and display useful information when they crash.
