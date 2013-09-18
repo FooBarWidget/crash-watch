@@ -46,7 +46,7 @@ $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + "/../lib"))
 require 'crash_watch/gdb_controller'
 begin
 	gdb = CrashWatch::GdbController.new
-rescue GdbWatch::Error => e
+rescue CrashWatch::Error => e
 	abort e.message
 end
 begin
