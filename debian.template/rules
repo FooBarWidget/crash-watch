@@ -9,6 +9,9 @@ override_dh_auto_configure:
 
 override_dh_auto_build:
 	# Do nothing
+	touch foo.c
+	echo $$CCACHE_DIR
+	ccache gcc foo.c -c
 
 override_dh_auto_install:
 	# Do nothing
