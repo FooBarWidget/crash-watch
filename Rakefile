@@ -512,7 +512,7 @@ task 'rpm:local' do
 	distro_id = `./rpm/get_distro_id.py`.strip
 	rpm_spec_dir = "#{RPMBUILD_ROOT}/SPECS"
 	spec_target_dir = "#{rpm_spec_dir}/#{distro_id}"
-	spec_target_file = "#{spec_target_dir}/#{PACKAGE_NAME}.spec"
+	spec_target_file = "#{spec_target_dir}/rubygem-#{PACKAGE_NAME}.spec"
 
 	sh "mkdir -p #{spec_target_dir}"
 	puts "Generating #{spec_target_file}"
@@ -528,7 +528,7 @@ def create_rpm_build_task(distro_id, mock_chroot_name, distro_name)
 	task "rpm:#{distro_id}" => 'rpm:gem' do
 		rpm_spec_dir = "#{RPMBUILD_ROOT}/SPECS"
 		spec_target_dir = "#{rpm_spec_dir}/#{distro_id}"
-	spec_target_file = "#{spec_target_dir}/#{PACKAGE_NAME}.spec"
+	spec_target_file = "#{spec_target_dir}/rubygem-#{PACKAGE_NAME}.spec"
 		maybe_offline = MOCK_OFFLINE ? "--offline" : nil
 
 		sh "mkdir -p #{spec_target_dir}"
@@ -555,7 +555,7 @@ task "rpm:all" => ALL_RPM_DISTROS.keys.map { |x| "rpm:#{x}" }
 desc "Publish RPMs for all distributions"
 task "rpm:publish" do
 	server = "juvia-helper.phusion.nl"
-	remote_dir = "/srv/yumgems"
+	remote_dir = "/srv/oss_binaries_passenger/yumgems/phusion-misc"
 	rsync = "rsync -z -r --delete --progress"
 
 	ALL_RPM_DISTROS.each_key do |distro_id|
@@ -566,7 +566,7 @@ task "rpm:publish" do
 	ALL_RPM_DISTROS.each_key do |distro_id|
 		sh "rpm --resign --define '%_signature gpg' --define '%_gpg_name #{PACKAGE_SIGNING_KEY}' #{PKG_DIR}/#{distro_id}/*.rpm"
 	end
-	sh "#{rsync} #{server}:#{remote_dir}/latest #{PKG_DIR}/yumgems"
+	sh "#{rsync} #{server}:#{remote_dir}/latest/ #{PKG_DIR}/yumgems/"
 	ALL_RPM_DISTROS.each_key do |distro_id|
 		distro_dir = "#{PKG_DIR}/#{distro_id}"
 		repo_dir = "#{PKG_DIR}/yumgems/#{distro_id}"
@@ -575,6 +575,6 @@ task "rpm:publish" do
 		sh "createrepo #{repo_dir}"
 	end
 	sh "ssh #{server} 'rm -rf #{remote_dir}/new && cp -dpR #{remote_dir}/latest #{remote_dir}/new'"
-	sh "#{rsync} #{PKG_DIR}/yumgems/ #{server}:#{remote_dir}/new"
+	sh "#{rsync} #{PKG_DIR}/yumgems/ #{server}:#{remote_dir}/new/"
 	sh "ssh #{server} 'rm -rf #{remote_dir}/previous && mv #{remote_dir}/latest #{remote_dir}/previous && mv #{remote_dir}/new #{remote_dir}/latest'"
 end
