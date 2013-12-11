@@ -1,0 +1,91 @@
+%global gem_name     crash-watch
+%global version      <%= PACKAGE_VERSION %>
+
+%if 0%{?fc18}
+%global rubyabi 1.9.1
+%endif
+
+%if 0%{?el6}
+%global rubyabi 1.8
+%endif
+
+Name:     rubygem-%{gem_name}
+Version:  %{version}
+Release:  1<%= @distribution %>
+Summary:  Process crash watcher and backtrace dumper
+License:  MIT
+URL:      https://github.com/FooBarWidget/crash-watch
+Source0:  http://rubygems.org/gems/%{gem_name}-%{version}.gem
+
+%if 0%{?fedora} >= 19
+Requires: ruby(release)
+%else
+Requires: ruby(abi) = %{rubyabi}
+%endif
+Requires: ruby(rubygems)
+Requires: gdb
+
+%if 0%{?el6}
+BuildRequires: ruby(rubygems)
+%else
+BuildRequires: rubygems-devel
+%endif
+
+BuildArch: noarch
+Provides: rubygem(crash-watch) = %{version}-%{release}
+
+# macros for RHEL6 compatibility:
+%{!?gem_dir: %global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)}
+%{!?gem_instdir: %global gem_instdir %{gem_dir}/gems/%{gem_name}-%{version}}
+%{!?gem_libdir: %global gem_libdir %{gem_instdir}/lib}
+%{!?gem_cache: %global gem_cache %{gem_dir}/cache/%{gem_name}-%{version}.gem}
+%{!?gem_spec: %global gem_spec %{gem_dir}/specifications/%{gem_name}-%{version}.gemspec}
+%{!?gem_docdir: %global gem_docdir %{gem_dir}/doc/%{gem_name}-%{version}}
+%{!?ruby_sitearch: %global ruby_sitearch %(ruby -rrbconfig -e 'puts Config::CONFIG["sitearchdir"]')}
+
+
+%description
+Monitor processes and display useful information when they crash.
+Also capable of displaying backtraces for existing processes.
+
+%prep
+%setup -q -c -T
+
+%build
+%if 0%{?el6}
+mkdir -p .%{gem_dir}
+gem install \
+	-V \
+	--local \
+	--install-dir .%{gem_dir} \
+	--bindir .%{_bindir} \
+	--no-rdoc --no-ri \
+    --force \
+    --backtrace \
+    %{SOURCE0}
+%else
+%gem_install -n %{SOURCE0} --no-rdoc --no-ri
+%endif
+
+%install
+mkdir -p %{buildroot}%{gem_dir}
+cp -a .%{_prefix}/* %{buildroot}%{_prefix}/
+
+%check
+pushd .%{gem_instdir}
+ruby -Ilib ./bin/crash-watch --version
+popd
+
+%files
+%defattr(-,root,root,-)
+%{_bindir}/crash-watch
+%dir %{gem_instdir}
+%doc %{gem_instdir}/LICENSE.txt
+%doc %{gem_instdir}/README.markdown
+%{gem_instdir}/crash-watch.gemspec
+%{gem_instdir}/bin
+%{gem_instdir}/test
+%{gem_libdir}
+%exclude %{gem_instdir}/Rakefile
+%exclude %{gem_cache}
+%{gem_spec}

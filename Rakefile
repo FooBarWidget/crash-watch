@@ -58,7 +58,8 @@ ORIG_TARBALL_FILES = lambda do
 	Dir[*CRASH_WATCH_FILES] - Dir[*CRASH_WATCH_EXCLUDE_FILES]
 end
 
-# Implements a simple preprocessor language:
+# Implements a simple preprocessor language which combines elements in the C
+# preprocessor with ERB:
 # 
 #     Today
 #     #if @today == :fine
@@ -69,6 +70,7 @@ end
 #         is a sad day.
 #     #endif
 #     Let's go walking.
+#     Today is <%= Time.now %>.
 # 
 # When run with...
 # 
@@ -79,6 +81,7 @@ end
 #     Today
 #     is a fine day.
 #     Let's go walking.
+#     Today is 2013-08-11 22:37:06 +0200.
 # 
 # Highlights:
 # 
@@ -86,6 +89,7 @@ end
 #  * Expressions are Ruby expressions, evaluated within the binding of a
 #    Preprocessor::Evaluator object.
 #  * Text inside #if/#elif/#else are automatically unindented.
+#  * ERB compatible.
 class Preprocessor
 	def initialize
 		require 'erb' if !defined?(ERB)
@@ -220,6 +224,12 @@ private
 		"squeeze"  => "20110206",
 		"wheezy"   => "20130504"
 	}
+	REDHAT_ENTERPRISE_DISTRIBUTIONS = {
+		"el6"      => "el6.0"
+	}
+	AMAZON_DISTRIBUTIONS = {
+		"amazon"   => "amazon"
+	}
 
 	# Provides the DSL that's accessible within.
 	class Evaluator
@@ -228,6 +238,10 @@ private
 				return UBUNTU_DISTRIBUTIONS
 			elsif DEBIAN_DISTRIBUTIONS.has_key?(name)
 				return DEBIAN_DISTRIBUTIONS
+			elsif REDHAT_ENTERPRISE_DISTRIBUTIONS.has_key?(name)
+				return REDHAT_ENTERPRISE_DISTRIBUTIONS
+			elsif AMAZON_DISTRIBUTIONS.has_key?(name)
+				return AMAZON_DISTRIBUTIONS
 			end
 		end
 
@@ -480,7 +494,6 @@ end
 
 RPM_NAME = "rubygem-crash-watch"
 RPMBUILD_ROOT = File.expand_path("~/rpmbuild")
-RHEL_RELEASES = ["6"]
 
 desc "Build gem for use in RPM building"
 task 'rpm:gem' do
@@ -489,27 +502,39 @@ task 'rpm:gem' do
 	sh "cp #{PACKAGE_NAME}-#{PACKAGE_VERSION}.gem #{rpm_source_dir}/"
 end
 
-def create_rpm_build_task(rhel_release)
-	desc "Build RPM for RHEL #{rhel_release}"
-	task "rpm:rhel#{rhel_release}" => 'rpm:gem' do
-		rpm_source_dir = "#{RPMBUILD_ROOT}/SOURCES"
-		rpm_spec_dir = "#{RPMBUILD_ROOT}/SPECS"
-		spec_target_file = "#{rpm_spec_dir}/#{PACKAGE_NAME}.rhel#{rhel_release}.spec"
+desc "Build RPM for local machine"
+task 'rpm:local' do
+	distro_id = `./rpm/get_distro_id.py`.strip
+	rpm_spec_dir = "#{RPMBUILD_ROOT}/SPECS"
+	spec_target_file = "#{rpm_spec_dir}/#{PACKAGE_NAME}.#{distro_id}.spec"
 
-		Dir.mktmpdir do |temp_dir|
-			recursive_copy_files(Dir["rpm.template/**/*"], temp_dir, true,
-				:rhel_release => rhel_release)
-			sh "mv #{temp_dir}/rpm.template/#{PACKAGE_NAME}.spec #{spec_target_file}"
-		end
+	puts "Generating #{spec_target_file}"
+	Preprocessor.new.start("rpm/#{PACKAGE_NAME}.spec.template",
+		spec_target_file,
+		:distribution => distro_id)
+
+	sh "rpmbuild -ba #{spec_target_file}"
+end
+
+def create_rpm_build_task(distro_id, mock_chroot_name, distro_name)
+	desc "Build RPM for #{distro_name}"
+	task "rpm:#{distro_id}" => 'rpm:gem' do
+		rpm_spec_dir = "#{RPMBUILD_ROOT}/SPECS"
+		spec_target_file = "#{rpm_spec_dir}/#{PACKAGE_NAME}.#{distro_id}.spec"
+
+		puts "Generating #{spec_target_file}"
+		Preprocessor.new.start("rpm/#{PACKAGE_NAME}.spec.template",
+			spec_target_file,
+			:distribution => distro_id)
 
 		sh "rpmbuild -bs #{spec_target_file}"
-		sh "mock -r epel-#{rhel_release}-x86_64 rebuild #{RPMBUILD_ROOT}/SRPMS/#{RPM_NAME}-#{PACKAGE_VERSION}-1.src.rpm"
+		sh "mock -r #{mock_chroot_name}-x86_64 " +
+			"--resultdir '#{PKG_DIR}/%(dist)s/%(target_arch)s' " +
+			"rebuild #{RPMBUILD_ROOT}/SRPMS/#{RPM_NAME}-#{PACKAGE_VERSION}-1#{distro_id}.src.rpm"
 	end
 end
 
-RHEL_RELEASES.each do |rhel_release|
-	create_rpm_build_task(rhel_release)
-end
+create_rpm_build_task("el6", "epel-6", "Enterprise Linux 6")
 
-desc "Build RPM for all RHEL releases"
-task "rpm:all" => RHEL_RELEASES.map{ |release| "rpm:rhel#{release}" }
+desc "Build RPMs for all distributions"
+task "rpm:all" => ["rpm:rhel6", "amazon"]
