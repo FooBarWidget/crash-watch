@@ -529,12 +529,13 @@ def create_rpm_build_task(distro_id, mock_chroot_name, distro_name)
 
 		sh "rpmbuild -bs #{spec_target_file}"
 		sh "mock -r #{mock_chroot_name}-x86_64 " +
-			"--resultdir '#{PKG_DIR}/%(dist)s/%(target_arch)s' " +
+			"--resultdir '#{PKG_DIR}/#{distro_id}' " +
 			"rebuild #{RPMBUILD_ROOT}/SRPMS/#{RPM_NAME}-#{PACKAGE_VERSION}-1#{distro_id}.src.rpm"
 	end
 end
 
 create_rpm_build_task("el6", "epel-6", "Enterprise Linux 6")
+create_rpm_build_task("amazon", "epel-6", "Amazon Linux")
 
 desc "Build RPMs for all distributions"
 task "rpm:all" => ["rpm:rhel6", "amazon"]
