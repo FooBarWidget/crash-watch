@@ -503,7 +503,7 @@ def create_rpm_build_task(rhel_release)
 		end
 
 		sh "rpmbuild -bs #{spec_target_file}"
-		sh "mock -r epel-6-x86_64 rebuild #{RPMBUILD_ROOT}/SRPMS/#{RPM_NAME}-#{PACKAGE_VERSION}-1.src.rpm"
+		sh "mock -r epel-#{rhel_release}-x86_64 rebuild #{RPMBUILD_ROOT}/SRPMS/#{RPM_NAME}-#{PACKAGE_VERSION}-1.src.rpm"
 	end
 end
 
