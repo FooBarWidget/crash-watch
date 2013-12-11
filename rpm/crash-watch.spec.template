@@ -14,6 +14,7 @@ Version:  %{gem_version}
 Release:  1<%= @distribution %>
 Summary:  Process crash watcher and backtrace dumper
 License:  MIT
+Group:    Development/Debug
 URL:      https://github.com/FooBarWidget/crash-watch
 Source0:  http://rubygems.org/gems/%{gem_name}-%{gem_version}.gem
 
@@ -25,6 +26,11 @@ Requires: ruby(abi) = %{rubyabi}
 Requires: ruby(rubygems)
 Requires: gdb
 
+%if 0%{?fedora} >= 19
+BuildRequires: ruby(release)
+%else
+BuildRequires: ruby(abi) = %{rubyabi}
+%endif
 %if 0%{?el6}
 BuildRequires: ruby(rubygems)
 %else
@@ -55,30 +61,34 @@ Also capable of displaying backtraces for existing processes.
 %if 0%{?el6}
 mkdir -p .%{gem_dir}
 gem install \
-	--local \
-	--install-dir .%{gem_dir} \
-	--bindir .%{_bindir} \
-	--no-rdoc --no-ri \
-	--force \
-	--backtrace \
-	%{SOURCE0}
+    --local \
+    --install-dir .%{gem_dir} \
+    --bindir .%{_bindir} \
+    --no-rdoc --no-ri \
+    --force \
+    --backtrace \
+    %{SOURCE0}
 %else
 %gem_install -n %{SOURCE0} --no-rdoc --no-ri
 %endif
 
 %install
+rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gem_dir}
 cp -a .%{_prefix}/* %{buildroot}%{_prefix}/
 #if is_distribution?(">= amazon")
-	# On Amazon Linux, 'ruby' is a symlink that can point to multiple alternatives.
-	# Lock down to the default Ruby, 1.8.
-	sed -i 's|/usr/bin/ruby$|/usr/bin/ruby1.8|' %{buildroot}%{_bindir}/crash-watch
+    # On Amazon Linux, 'ruby' is a symlink that can point to multiple alternatives.
+    # Lock down to the default Ruby, 1.8.
+    sed -i 's|/usr/bin/ruby$|/usr/bin/ruby1.8|' %{buildroot}%{_bindir}/crash-watch
 #endif
 
 %check
 pushd %{buildroot}%{gem_instdir}
 ruby -Ilib ./bin/crash-watch --version
 popd
+
+%clean
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
@@ -93,3 +103,7 @@ popd
 %exclude %{gem_instdir}/Rakefile
 %exclude %{gem_cache}
 %{gem_spec}
+
+%changelog
+* Wed Dec 11 2013 Hongli Lai <hongli@phusion.nl> - 1.1.11-1<%= @distribution %>
+- Initial packaging
