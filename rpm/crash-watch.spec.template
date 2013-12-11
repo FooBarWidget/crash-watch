@@ -16,7 +16,7 @@ Summary:  Process crash watcher and backtrace dumper
 License:  MIT
 Group:    Development/Debug
 URL:      https://github.com/FooBarWidget/crash-watch
-Source0:  http://rubygems.org/gems/%{gem_name}-%{gem_version}.gem
+Source0:  https://rubygems.org/gems/%{gem_name}-%{gem_version}.gem
 
 %if 0%{?fedora} >= 19
 Requires: ruby(release)

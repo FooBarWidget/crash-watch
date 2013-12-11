@@ -508,11 +508,11 @@ task 'rpm:gem' do
 end
 
 desc "Build RPM for local machine"
-task 'rpm:local' do
+task 'rpm:local' => 'rpm:gem' do
 	distro_id = `./rpm/get_distro_id.py`.strip
 	rpm_spec_dir = "#{RPMBUILD_ROOT}/SPECS"
 	spec_target_dir = "#{rpm_spec_dir}/#{distro_id}"
-	spec_target_file = "#{spec_target_dir}/rubygem-#{PACKAGE_NAME}.spec"
+	spec_target_file = "#{spec_target_dir}/#{RPM_NAME}.spec"
 
 	sh "mkdir -p #{spec_target_dir}"
 	puts "Generating #{spec_target_file}"
@@ -528,7 +528,7 @@ def create_rpm_build_task(distro_id, mock_chroot_name, distro_name)
 	task "rpm:#{distro_id}" => 'rpm:gem' do
 		rpm_spec_dir = "#{RPMBUILD_ROOT}/SPECS"
 		spec_target_dir = "#{rpm_spec_dir}/#{distro_id}"
-	spec_target_file = "#{spec_target_dir}/rubygem-#{PACKAGE_NAME}.spec"
+		spec_target_file = "#{spec_target_dir}/#{RPM_NAME}.spec"
 		maybe_offline = MOCK_OFFLINE ? "--offline" : nil
 
 		sh "mkdir -p #{spec_target_dir}"
