@@ -1,5 +1,5 @@
 %global gem_name     crash-watch
-%global version      <%= PACKAGE_VERSION %>
+%global gem_version  <%= PACKAGE_VERSION %>
 
 %if 0%{?fc18}
 %global rubyabi 1.9.1
@@ -10,12 +10,12 @@
 %endif
 
 Name:     rubygem-%{gem_name}
-Version:  %{version}
+Version:  %{gem_version}
 Release:  1<%= @distribution %>
 Summary:  Process crash watcher and backtrace dumper
 License:  MIT
 URL:      https://github.com/FooBarWidget/crash-watch
-Source0:  http://rubygems.org/gems/%{gem_name}-%{version}.gem
+Source0:  http://rubygems.org/gems/%{gem_name}-%{gem_version}.gem
 
 %if 0%{?fedora} >= 19
 Requires: ruby(release)
@@ -32,16 +32,16 @@ BuildRequires: rubygems-devel
 %endif
 
 BuildArch: noarch
-Provides: rubygem(crash-watch) = %{version}-%{release}
+Provides: rubygem(crash-watch) = %{gem_version}-%{release}
 
 # macros for RHEL6 compatibility:
 %{!?gem_dir: %global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)}
-%{!?gem_instdir: %global gem_instdir %{gem_dir}/gems/%{gem_name}-%{version}}
+%{!?gem_instdir: %global gem_instdir %{gem_dir}/gems/%{gem_name}-%{gem_version}}
 %{!?gem_libdir: %global gem_libdir %{gem_instdir}/lib}
-%{!?gem_cache: %global gem_cache %{gem_dir}/cache/%{gem_name}-%{version}.gem}
-%{!?gem_spec: %global gem_spec %{gem_dir}/specifications/%{gem_name}-%{version}.gemspec}
-%{!?gem_docdir: %global gem_docdir %{gem_dir}/doc/%{gem_name}-%{version}}
-%{!?ruby_sitearch: %global ruby_sitearch %(ruby -rrbconfig -e 'puts Config::CONFIG["sitearchdir"]')}
+%{!?gem_cache: %global gem_cache %{gem_dir}/cache/%{gem_name}-%{gem_version}.gem}
+%{!?gem_spec: %global gem_spec %{gem_dir}/specifications/%{gem_name}-%{gem_version}.gemspec}
+%{!?gem_docdir: %global gem_docdir %{gem_dir}/doc/%{gem_name}-%{gem_version}}
+%{!?ruby_sitearch: %global ruby_sitearch %(ruby -rrbconfig -e 'puts RbConfig::CONFIG["sitearchdir"]')}
 
 
 %description
@@ -55,7 +55,6 @@ Also capable of displaying backtraces for existing processes.
 %if 0%{?el6}
 mkdir -p .%{gem_dir}
 gem install \
-	-V \
 	--local \
 	--install-dir .%{gem_dir} \
 	--bindir .%{_bindir} \
@@ -73,11 +72,11 @@ cp -a .%{_prefix}/* %{buildroot}%{_prefix}/
 #if is_distribution?(">= amazon")
 	# On Amazon Linux, 'ruby' is a symlink that can point to multiple alternatives.
 	# Lock down to the default Ruby, 1.8.
-	sed -i 's|/usr/bin/ruby$|/usr/bin/ruby1.8|' .%{_bindir}/crash-watch
+	sed -i 's|/usr/bin/ruby$|/usr/bin/ruby1.8|' %{buildroot}%{_bindir}/crash-watch
 #endif
 
 %check
-pushd .%{gem_instdir}
+pushd %{buildroot}%{gem_instdir}
 ruby -Ilib ./bin/crash-watch --version
 popd
 

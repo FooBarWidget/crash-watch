@@ -494,6 +494,7 @@ end
 
 RPM_NAME = "rubygem-crash-watch"
 RPMBUILD_ROOT = File.expand_path("~/rpmbuild")
+MOCK_OFFLINE = boolean_option('MOCK_OFFLINE', false)
 
 desc "Build gem for use in RPM building"
 task 'rpm:gem' do
@@ -521,6 +522,7 @@ def create_rpm_build_task(distro_id, mock_chroot_name, distro_name)
 	task "rpm:#{distro_id}" => 'rpm:gem' do
 		rpm_spec_dir = "#{RPMBUILD_ROOT}/SPECS"
 		spec_target_file = "#{rpm_spec_dir}/#{PACKAGE_NAME}.#{distro_id}.spec"
+		maybe_offline = MOCK_OFFLINE ? "--offline" : nil
 
 		puts "Generating #{spec_target_file}"
 		Preprocessor.new.start("rpm/#{PACKAGE_NAME}.spec.template",
@@ -528,7 +530,8 @@ def create_rpm_build_task(distro_id, mock_chroot_name, distro_name)
 			:distribution => distro_id)
 
 		sh "rpmbuild -bs #{spec_target_file}"
-		sh "mock -r #{mock_chroot_name}-x86_64 " +
+		sh "mock --verbose #{maybe_offline} " +
+			"-r #{mock_chroot_name}-x86_64 " +
 			"--resultdir '#{PKG_DIR}/#{distro_id}' " +
 			"rebuild #{RPMBUILD_ROOT}/SRPMS/#{RPM_NAME}-#{PACKAGE_VERSION}-1#{distro_id}.src.rpm"
 	end
