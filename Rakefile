@@ -1,5 +1,6 @@
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + "/lib"))
 require 'crash_watch/version'
+require 'tmpdir'
 
 PACKAGE_NAME    = "crash-watch"
 PACKAGE_VERSION = CrashWatch::VERSION_STRING
@@ -473,3 +474,42 @@ task 'debian:clean' do
 	end
 	sh "rm -rf #{PKG_DIR}/*.debian.tar.gz"
 end
+
+
+##### RPM packaging support #####
+
+RPM_NAME = "rubygem-crash-watch"
+RPMBUILD_ROOT = File.expand_path("~/rpmbuild")
+RHEL_RELEASES = ["6"]
+
+desc "Build gem for use in RPM building"
+task 'rpm:gem' do
+	rpm_source_dir = "#{RPMBUILD_ROOT}/SOURCES"
+	sh "gem build #{PACKAGE_NAME}.gemspec"
+	sh "cp #{PACKAGE_NAME}-#{PACKAGE_VERSION}.gem #{rpm_source_dir}/"
+end
+
+def create_rpm_build_task(rhel_release)
+	desc "Build RPM for RHEL #{rhel_release}"
+	task "rpm:rhel#{rhel_release}" => 'rpm:gem' do
+		rpm_source_dir = "#{RPMBUILD_ROOT}/SOURCES"
+		rpm_spec_dir = "#{RPMBUILD_ROOT}/SPECS"
+		spec_target_file = "#{rpm_spec_dir}/#{PACKAGE_NAME}.rhel#{rhel_release}.spec"
+
+		Dir.mktmpdir do |temp_dir|
+			recursive_copy_files(Dir["rpm.template/**/*"], temp_dir, true,
+				:rhel_release => rhel_release)
+			sh "mv #{temp_dir}/rpm.template/#{PACKAGE_NAME}.spec #{spec_target_file}"
+		end
+
+		sh "rpmbuild -bs #{spec_target_file}"
+		sh "mock -r epel-6-x86_64 rebuild #{RPMBUILD_ROOT}/SRPMS/#{RPM_NAME}-#{PACKAGE_VERSION}-1.src.rpm"
+	end
+end
+
+RHEL_RELEASES.each do |rhel_release|
+	create_rpm_build_task(rhel_release)
+end
+
+desc "Build RPM for all RHEL releases"
+task "rpm:all" => RHEL_RELEASES.map{ |release| "rpm:rhel#{release}" }
