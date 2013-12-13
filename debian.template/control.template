@@ -10,7 +10,13 @@ Vcs-Browser: https://github.com/FooBarWidget/crash-watch
 
 Package: crash-watch
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter, gdb
+Depends: ${shlibs:Depends}, ${misc:Depends},
+#if is_distribution?(">= precise")
+     ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter,
+#else
+     ruby,
+#endif
+ gdb
 Description: Process crash watcher and backtrace dumper
  Monitor processes and display useful information when they crash.
  Also capable of displaying backtraces for existing processes.

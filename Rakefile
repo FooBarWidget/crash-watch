@@ -52,7 +52,7 @@ end
 
 PKG_DIR         = string_option('PKG_DIR', "pkg")
 DEBIAN_NAME     = PACKAGE_NAME
-DEBIAN_PACKAGE_REVISION = 2
+DEBIAN_PACKAGE_REVISION = 3
 ALL_DISTRIBUTIONS  = string_option('DEBIAN_DISTROS', 'saucy precise lucid').split(/[ ,]/)
 ORIG_TARBALL_FILES = lambda do
 	require 'crash_watch/packaging'

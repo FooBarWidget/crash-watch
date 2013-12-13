@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	# Do nothing
+
+override_dh_auto_build:
+	# Do nothing
+
+override_dh_install:
+	dh_install
+#if is_distribution?(">= precise")
+    	mkdir -p debian/crash-watch/usr/share/crash-watch
+    	cp debian/ruby-interpreter debian/crash-watch/usr/share/crash-watch/
+    	sed -i 's/\/usr\/bin\/env ruby/\/usr\/share\/crash-watch\/ruby-interpreter/' debian/crash-watch/usr/bin/crash-watch
+#else
+    	sed -i 's/\/usr\/bin\/env ruby/\/usr\/bin\/ruby/' debian/crash-watch/usr/bin/crash-watch
+#endif
+
+override_dh_auto_clean:
+	# Do nothing
