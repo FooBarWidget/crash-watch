@@ -52,7 +52,7 @@ end
 
 PKG_DIR         = string_option('PKG_DIR', "pkg")
 DEBIAN_NAME     = PACKAGE_NAME
-ALL_DISTRIBUTIONS  = string_option('DEBIAN_DISTROS', 'raring precise lucid').split(/[ ,]/)
+ALL_DISTRIBUTIONS  = string_option('DEBIAN_DISTROS', 'saucy precise lucid').split(/[ ,]/)
 ORIG_TARBALL_FILES = lambda do
 	require 'crash_watch/packaging'
 	Dir[*CRASH_WATCH_FILES] - Dir[*CRASH_WATCH_EXCLUDE_FILES]
