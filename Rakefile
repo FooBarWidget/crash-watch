@@ -52,6 +52,7 @@ end
 
 PKG_DIR         = string_option('PKG_DIR', "pkg")
 DEBIAN_NAME     = PACKAGE_NAME
+DEBIAN_PACKAGE_REVISION = 2
 ALL_DISTRIBUTIONS  = string_option('DEBIAN_DISTROS', 'saucy precise lucid').split(/[ ,]/)
 ORIG_TARBALL_FILES = lambda do
 	require 'crash_watch/packaging'
@@ -412,7 +413,7 @@ def create_debian_package_dir(distribution)
 	sh "mv #{root}/debian.template #{root}/debian"
 	changelog = File.read("#{root}/debian/changelog")
 	changelog =
-		"#{DEBIAN_NAME} (#{PACKAGE_VERSION}-1~#{distribution}1) #{distribution}; urgency=low\n" +
+		"#{DEBIAN_NAME} (#{PACKAGE_VERSION}-#{DEBIAN_PACKAGE_REVISION}~#{distribution}1) #{distribution}; urgency=low\n" +
 		"\n" +
 		"  * Package built.\n" +
 		"\n" +
@@ -493,6 +494,7 @@ end
 ##### RPM packaging support #####
 
 RPM_NAME = "rubygem-crash-watch"
+RPM_PACKAGE_REVISION = 1
 RPMBUILD_ROOT = File.expand_path("~/rpmbuild")
 MOCK_OFFLINE = boolean_option('MOCK_OFFLINE', false)
 ALL_RPM_DISTROS = {
@@ -541,7 +543,7 @@ def create_rpm_build_task(distro_id, mock_chroot_name, distro_name)
 		sh "mock --verbose #{maybe_offline} " +
 			"-r #{mock_chroot_name}-x86_64 " +
 			"--resultdir '#{PKG_DIR}/#{distro_id}' " +
-			"rebuild #{RPMBUILD_ROOT}/SRPMS/#{RPM_NAME}-#{PACKAGE_VERSION}-1#{distro_id}.src.rpm"
+			"rebuild #{RPMBUILD_ROOT}/SRPMS/#{RPM_NAME}-#{PACKAGE_VERSION}-#{RPM_PACKAGE_REVISION}#{distro_id}.src.rpm"
 	end
 end
 
