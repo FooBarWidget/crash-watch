@@ -58,11 +58,26 @@ module CrashWatch
         
         if gdb.attach(argv[0])
           if options[:dump]
-            puts "Current thread (#{gdb.current_thread}) backtrace:"
+            puts "*******************************************************"
+            puts "*"
+            puts "*    Current thread (#{gdb.current_thread}) backtrace"
+            puts "*"
+            puts "*******************************************************"
+            puts
             puts "    " << gdb.current_thread_backtrace.gsub(/\n/, "\n    ")
             puts
-            puts "All thread backtraces:"
-            puts "    " << gdb.all_threads_backtraces.gsub(/\n/, "\n    ")
+            puts
+            puts "*******************************************************"
+            puts "*"
+            puts "*    All thread backtraces"
+            puts "*"
+            puts "*******************************************************"
+            puts
+            output = gdb.all_threads_backtraces
+            output.gsub!(/\n/, "\n    ")
+            output.insert(0, "    ")
+            output.gsub!(/^    (Thread .*):$/, "########### \\1 ###########\n")
+            puts output
           else
             puts "Monitoring PID #{argv[0]}..."
             exit_info = gdb.wait_until_exit
