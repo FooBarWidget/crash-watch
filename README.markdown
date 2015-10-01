@@ -99,7 +99,7 @@ Instantiate with:
     require 'crash_watch/gdb_controller'
     gdb = CrashWatch::GdbController.new
 
-This will spawn a new GDB process. Use `#execute` to execute arbitary GDB commands. Whatever the command prints to stdout and stderr will be available in the result string.
+This will spawn a new GDB process. Use `#execute` to execute arbitrary GDB commands. Whatever the command prints to stdout and stderr will be available in the result string.
 
     gdb.execute("bt")        # => backtrace string
     gdb.execute("p 1 + 2")   # => "$1 = 3\n"
