@@ -124,12 +124,6 @@ module CrashWatch
       result !~ /(No such process|Unable to access task|Operation not permitted)/
     end
     
-    def call(code)
-      result = execute("call #{code}")
-      result =~ /= (.*)$/
-      $1
-    end
-    
     def program_counter
       execute("p/x $pc").gsub(/.* = /, '')
     end
@@ -145,38 +139,6 @@ module CrashWatch
     
     def all_threads_backtraces
       execute("thread apply all bt full").strip
-    end
-    
-    def ruby_backtrace
-      filename = "/tmp/gdb-capture.#{@pid}.txt"
-      
-      orig_stdout_fd_copy = call("(int) dup(1)")
-      new_stdout = call(%Q{(void *) fopen("#{filename}", "w")})
-      new_stdout_fd = call("(int) fileno(#{new_stdout})")
-      call("(int) dup2(#{new_stdout_fd}, 1)")
-      
-      # Let's hope stdout is set to line buffered or unbuffered mode...
-      call("(void) rb_backtrace()")
-      
-      call("(int) dup2(#{orig_stdout_fd_copy}, 1)")
-      call("(int) fclose(#{new_stdout})")
-      call("(int) close(#{orig_stdout_fd_copy})")
-      
-      if File.exist?(filename)
-        result = File.read(filename)
-        result.strip!
-        if result.empty?
-          nil
-        else
-          result
-        end
-      else
-        nil
-      end
-    ensure
-      if filename
-        File.unlink(filename) rescue nil
-      end
     end
     
     def wait_until_exit
