@@ -150,8 +150,8 @@ module CrashWatch
       
       while true
         result = execute("continue")
-        if result =~ /^Program received signal (.+?),/
-          signal = $1
+        if result =~ /^(Program|Thread .*) received signal (.+?),/
+          signal = $2
           backtraces = execute("thread apply all bt full").strip
           if backtraces.empty?
             backtraces = execute("bt full").strip
@@ -166,12 +166,12 @@ module CrashWatch
           # the next machine instruction.
           old_program_counter = program_counter
           result = execute("stepi")
-          if result =~ /^Program received signal .+?,/
+          if result =~ /^(Program|Thread .*) received signal .+?,/
             # Yes, it was fatal. Here we don't care whether the
             # instruction caused a different signal. The last
             # one is probably what we're interested in.
             return ExitInfo.new(nil, signal, backtraces, snapshot)
-          elsif result =~ /^Program (terminated|exited)/ || result =~ /^Breakpoint .*? _exit/
+          elsif result =~ /^Program (terminated|exited)/ || result =~ /^Breakpoint .*? (__GI_)?_exit/
             # Running the next instruction causes the program to terminate.
             # Not sure what's going on but the previous signal and
             # backtrace is probably what we're interested in.
@@ -192,7 +192,8 @@ module CrashWatch
           else
             return ExitInfo.new(nil, signal, nil, snapshot)
           end
-        elsif result =~ /^Breakpoint .*? _exit /
+        elsif result =~ /Breakpoint .*? (__GI_)?_exit (\(status=(\d+)\))?/
+          status_param = $3
           backtraces = execute("thread apply all bt full").strip
           if backtraces.empty?
             backtraces = execute("bt full").strip
@@ -202,16 +203,18 @@ module CrashWatch
           # even though the process exited. Kernel bug? In any case,
           # we put a timeout here so that we don't wait indefinitely.
           result = execute("continue", 10)
-          if result =~ /^Program exited with code (\d+)\.$/
-            return ExitInfo.new($1.to_i, nil, backtraces, snapshot)
-          elsif result =~ /^Program exited normally/
+          if result =~ /^(Program|.*process .*) exited with code (\d+)/
+            return ExitInfo.new($2.to_i, nil, backtraces, snapshot)
+          elsif result =~ /^(Program|.*process .*) exited normally/
             return ExitInfo.new(0, nil, backtraces, snapshot)
-          else
+          elsif status_param.nil? || status_param.empty?
             return ExitInfo.new(nil, nil, backtraces, snapshot)
+          else
+            return ExitInfo.new(status_param.to_i, nil, backtraces, snapshot)
           end
-        elsif result =~ /^Program exited with code (\d+)\.$/
-          return ExitInfo.new($1.to_i, nil, nil, nil)
-        elsif result =~ /^Program exited normally/
+        elsif result =~ /^(Program|.*process .*) exited with code (\d+)\.$/
+          return ExitInfo.new($2.to_i, nil, nil, nil)
+        elsif result =~ /^(Program|.*process .*) exited normally/
           return ExitInfo.new(0, nil, nil, nil)
         else
           return ExitInfo.new(nil, nil, nil, nil)

@@ -6,6 +6,7 @@ Thread.abort_on_exception = true
 require 'spec_helper'
 require 'crash_watch/utils'
 require 'crash_watch/gdb_controller'
+require 'shellwords'
 
 describe CrashWatch::GdbController do
   before :each do
@@ -21,7 +22,7 @@ describe CrashWatch::GdbController do
   end
   
   def run_script_and_wait(code, snapshot_callback = nil, &block)
-    @process = IO.popen(%Q{ruby -e '#{code}'}, 'w')
+    @process = IO.popen(%Q{exec ruby -e #{Shellwords.escape code}}, 'w')
     @gdb.attach(@process.pid)
     thread = Thread.new do
       sleep 0.1
@@ -32,7 +33,7 @@ describe CrashWatch::GdbController do
     end
     exit_info = @gdb.wait_until_exit(&snapshot_callback)
     thread.join
-    return exit_info
+    exit_info
   end
   
   describe "#execute" do
@@ -47,13 +48,13 @@ describe CrashWatch::GdbController do
     end
     
     it "returns true if attaching worked" do
-      expect(@gdb.attach(@process.pid)).to be true
+      expect(@gdb.attach(@process.pid)).to be_truthy
     end
     
     it "returns false if the PID doesn't exist" do
       Process.kill('KILL', @process.pid)
       sleep 0.25
-      expect(@gdb.attach(@process.pid)).to be false
+      expect(@gdb.attach(@process.pid)).to be_falsey
     end
   end
   
