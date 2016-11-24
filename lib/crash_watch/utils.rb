@@ -25,11 +25,22 @@ module CrashWatch
   module Utils
     extend Utils
 
+    def self.included(klass)
+      # When included into another class, make sure that Utils
+      # methods are made private.
+      public_instance_methods(false).each do |method_name|
+        klass.send(:private, method_name)
+      end
+    end
+
     def gdb_installed?
       command_installed?('gdb')
     end
 
-  private
+    def lldb_installed?
+      command_installed?('lldb')
+    end
+
     def command_installed?(command)
       path = ENV['PATH'].to_s
       path.split(File::PATH_SEPARATOR).each do |dir|
@@ -40,6 +51,44 @@ module CrashWatch
         end
       end
       false
+    end
+
+    def popen_command(*command)
+      a, b = IO.pipe
+      c, d = IO.pipe
+      if Process.respond_to?(:spawn)
+        args = command.dup
+        args << {
+          STDIN  => a,
+          STDOUT => d,
+          STDERR => d,
+          :close_others => true
+        }
+        pid = Process.spawn(*args)
+      else
+        pid = fork do
+          STDIN.reopen(a)
+          STDOUT.reopen(d)
+          STDERR.reopen(d)
+          b.close
+          c.close
+          exec(*command)
+        end
+      end
+      a.close
+      d.close
+      b.binmode
+      c.binmode
+      [pid, b, c]
+    end
+
+    def find_signal_name(signo)
+      Signal.list.each_pair do |name, number|
+        if number == signo
+          return name
+        end
+      end
+      nil
     end
   end
 end

@@ -22,11 +22,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require 'rbconfig'
+require 'crash_watch/base'
+require 'crash_watch/utils'
 
 module CrashWatch
-  class Error < StandardError
-  end
-
   class GdbNotFound < Error
   end
 
@@ -54,7 +53,7 @@ module CrashWatch
     attr_accessor :debug
 
     def initialize
-      @pid, @in, @out = popen_command(find_gdb, "-n", "-q")
+      @pid, @in, @out = Utils.popen_command(find_gdb, "-n", "-q")
       execute("set prompt ")
     end
 
@@ -223,35 +222,6 @@ module CrashWatch
     end
 
   private
-    def popen_command(*command)
-      a, b = IO.pipe
-      c, d = IO.pipe
-      if Process.respond_to?(:spawn)
-        args = command.dup
-        args << {
-          STDIN  => a,
-          STDOUT => d,
-          STDERR => d,
-          :close_others => true
-        }
-        pid = Process.spawn(*args)
-      else
-        pid = fork do
-          STDIN.reopen(a)
-          STDOUT.reopen(d)
-          STDERR.reopen(d)
-          b.close
-          c.close
-          exec(*command)
-        end
-      end
-      a.close
-      d.close
-      b.binmode
-      c.binmode
-      [pid, b, c]
-    end
-
     def find_gdb
       result = nil
       if ENV['GDB'] && File.executable?(ENV['GDB'])

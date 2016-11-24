@@ -23,6 +23,7 @@
 
 require 'optparse'
 require 'crash_watch/gdb_controller'
+require 'crash_watch/lldb_controller'
 require 'crash_watch/version'
 
 module CrashWatch
@@ -68,7 +69,11 @@ module CrashWatch
       end
 
       begin
-        gdb = CrashWatch::GdbController.new
+        if !CrashWatch::Utils.gdb_installed? && CrashWatch::Utils.lldb_installed?
+          gdb = CrashWatch::LldbController.new
+        else
+          gdb = CrashWatch::GdbController.new
+        end
       rescue CrashWatch::Error => e
         abort e.message
       end
@@ -101,14 +106,18 @@ module CrashWatch
             output.gsub!(/^    (Thread .*):$/, "########### \\1 ###########\n")
             puts output
           else
-            puts "Monitoring PID #{argv[0]}..."
-            exit_info = gdb.wait_until_exit
-            puts "Process exited at #{Time.now}."
-            puts "Exit code: #{exit_info.exit_code}" if exit_info.exit_code
-            puts "Signal: #{exit_info.signal}" if exit_info.signaled?
-            if exit_info.backtrace
-              puts "Backtrace:"
-              puts "    " << exit_info.backtrace.gsub(/\n/, "\n    ")
+            if gdb.respond_to?(:wait_until_exit)
+              puts "Monitoring PID #{argv[0]}..."
+              exit_info = gdb.wait_until_exit
+              puts "Process exited at #{Time.now}."
+              puts "Exit code: #{exit_info.exit_code}" if exit_info.exit_code
+              puts "Signal: #{exit_info.signal}" if exit_info.signaled?
+              if exit_info.backtrace
+                puts "Backtrace:"
+                puts "    " << exit_info.backtrace.gsub(/\n/, "\n    ")
+              end
+            else
+              abort "ERROR: monitoring not supported with LLDB"
             end
           end
         else
