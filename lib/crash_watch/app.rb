@@ -1,5 +1,5 @@
 # encoding: binary
-# 
+#
 # Copyright (c) 2010-2015 Phusion
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -32,7 +32,7 @@ module CrashWatch
       parser = OptionParser.new do |opts|
         opts.banner = "Usage: crash-watch [options] PID"
         opts.separator ""
-        
+
         opts.separator "Options:"
         opts.on("-d", "--debug", "Show GDB commands that crash-watch sends.") do
           options[:debug] = true
@@ -74,10 +74,10 @@ module CrashWatch
       end
       begin
         gdb.debug = options[:debug]
-        
+
         # Ruby sometimes uses SIGVTARLM for thread scheduling.
         gdb.execute("handle SIGVTALRM noprint pass")
-        
+
         if gdb.attach(argv[0])
           if options[:dump]
             puts "*******************************************************"

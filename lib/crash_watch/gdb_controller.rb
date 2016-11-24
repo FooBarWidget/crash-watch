@@ -36,28 +36,28 @@ module CrashWatch
   class GdbController
     class ExitInfo
       attr_reader :exit_code, :signal, :backtrace, :snapshot
-      
+
       def initialize(exit_code, signal, backtrace, snapshot)
         @exit_code = exit_code
         @signal = signal
         @backtrace = backtrace
         @snapshot = snapshot
       end
-      
+
       def signaled?
         !!@signal
       end
     end
-    
+
     END_OF_RESPONSE_MARKER = '--------END_OF_RESPONSE--------'
-    
+
     attr_accessor :debug
 
     def initialize
       @pid, @in, @out = popen_command(find_gdb, "-n", "-q")
       execute("set prompt ")
     end
-    
+
     def execute(command_string, timeout = nil)
       raise "GDB session is already closed" if !@pid
       puts "gdb write #{command_string.inspect}" if @debug
@@ -86,11 +86,11 @@ module CrashWatch
       end
       result
     end
-    
+
     def closed?
       !@pid
     end
-    
+
     def close
       if !closed?
         begin
@@ -106,7 +106,7 @@ module CrashWatch
         end
       end
     end
-    
+
     def close!
       if !closed?
         @in.close
@@ -116,38 +116,38 @@ module CrashWatch
         @pid = nil
       end
     end
-    
+
     def attach(pid)
       pid = pid.to_s.strip
       raise ArgumentError if pid.empty?
       result = execute("attach #{pid}")
       result !~ /(No such process|Unable to access task|Operation not permitted)/
     end
-    
+
     def program_counter
       execute("p/x $pc").gsub(/.* = /, '')
     end
-    
+
     def current_thread
       execute("thread") =~ /Current thread is (.+?) /
       $1
     end
-    
+
     def current_thread_backtrace
       execute("bt full").strip
     end
-    
+
     def all_threads_backtraces
       execute("thread apply all bt full").strip
     end
-    
+
     def wait_until_exit
       execute("break _exit")
-      
+
       signal = nil
       backtraces = nil
       snapshot = nil
-      
+
       while true
         result = execute("continue")
         if result =~ /^(Program|Thread .*) received signal (.+?),/
@@ -157,7 +157,7 @@ module CrashWatch
             backtraces = execute("bt full").strip
           end
           snapshot = yield(self) if block_given?
-          
+
           # This signal may or may not be immediately fatal; the
           # signal might be ignored by the process, or the process
           # has some clever signal handler that fixes the state,
@@ -221,7 +221,7 @@ module CrashWatch
         end
       end
     end
-    
+
   private
     def popen_command(*command)
       a, b = IO.pipe
@@ -293,7 +293,7 @@ module CrashWatch
         end
       elsif result.nil?
         raise GdbNotFound,
-          "*** ERROR ***: 'gdb' not found. Please install it (and if using Nginx " + 
+          "*** ERROR ***: 'gdb' not found. Please install it (and if using Nginx " +
           "ensure that PATH isn't filtered out, see also its \"env\" option).\n" +
           "       Debian/Ubuntu: sudo apt-get install gdb\n" +
           "RedHat/CentOS/Fedora: sudo yum install gdb\n" +
