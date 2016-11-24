@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    crash-watch (1.1.12)
+    crash-watch (1.2.0)
 
 GEM
   remote: https://rubygems.org/

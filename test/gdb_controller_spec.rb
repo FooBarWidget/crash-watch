@@ -1,6 +1,7 @@
 source_root = File.expand_path(File.dirname(__FILE__) + "/..")
 require "#{source_root}/test/spec_helper"
 require "#{source_root}/test/controller_sharedspec"
+require 'crash_watch/gdb_controller'
 require 'crash_watch/utils'
 
 if CrashWatch::Utils.gdb_installed?
