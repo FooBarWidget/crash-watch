@@ -34,7 +34,7 @@ describe CrashWatch::GdbController do
   
   describe "#execute" do
     it "executes the desired command and returns its output" do
-      @gdb.execute("echo hello world").should == "hello world\n"
+      expect(@gdb.execute("echo hello world")).to eq("hello world\n")
     end
   end
   
@@ -57,16 +57,16 @@ describe CrashWatch::GdbController do
   describe "#wait_until_exit" do
     it "returns the expected information if the process exited normally" do
       exit_info = run_script_and_wait('STDIN.readline')
-      exit_info.exit_code.should == 0
-      exit_info.should_not be_signaled
+      expect(exit_info.exit_code).to eq(0)
+      expect(exit_info).not_to be_signaled
     end
     
     it "returns the expected information if the process exited with a non-zero exit code" do
       exit_info = run_script_and_wait('STDIN.readline; exit 3')
-      exit_info.exit_code.should == 3
-      exit_info.should_not be_signaled
-      exit_info.backtrace.should_not be_nil
-      exit_info.backtrace.should_not be_empty
+      expect(exit_info.exit_code).to eq(3)
+      expect(exit_info).not_to be_signaled
+      expect(exit_info.backtrace).not_to be_nil
+      expect(exit_info.backtrace).not_to be_empty
     end
     
     it "returns the expected information if the process exited because of a signal" do
@@ -80,18 +80,18 @@ describe CrashWatch::GdbController do
           'attach_function :abort, [], :void;' +
         'end;' +
         'MyLib.abort')
-      exit_info.should be_signaled
-      exit_info.backtrace.should =~ /abort/
+      expect(exit_info).to be_signaled
+      expect(exit_info.backtrace).to match(/abort/)
     end
     
     it "ignores non-fatal signals" do
       exit_info = run_script_and_wait('trap("INT") { }; STDIN.readline; exit 2') do
         Process.kill('INT', @process.pid)
       end
-      exit_info.exit_code.should == 2
-      exit_info.should_not be_signaled
-      exit_info.backtrace.should_not be_nil
-      exit_info.backtrace.should_not be_empty
+      expect(exit_info.exit_code).to eq(2)
+      expect(exit_info).not_to be_signaled
+      expect(exit_info.backtrace).not_to be_nil
+      expect(exit_info.backtrace).not_to be_empty
     end
     
     it "returns information of the signal that aborted the process, not information of ignored signals" do
@@ -109,8 +109,8 @@ describe CrashWatch::GdbController do
       ) do
         Process.kill('INT', @process.pid)
       end
-      exit_info.should be_signaled
-      exit_info.backtrace.should =~ /abort/
+      expect(exit_info).to be_signaled
+      expect(exit_info.backtrace).to match(/abort/)
     end
   end
 end
