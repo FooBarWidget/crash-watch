@@ -13,49 +13,10 @@ Run:
 
     gem install crash-watch
 
-You must also have GDB installed. Mac OS X already has it by default. If you're on Linux, try one of these:
+You must also have GDB installed. macOS already has it by default. If you're on Linux, try one of these:
 
     apt-get install gdb
     yum install gdb
-
-This gem is signed using PGP with the [Phusion Software Signing key](http://www.phusion.nl/about/gpg). That key in turn is signed by [the rubygems-openpgp Certificate Authority](http://www.rubygems-openpgp-ca.org/).
-
-You can verify the authenticity of the gem by following [The Complete Guide to Verifying Gems with rubygems-openpgp](http://www.rubygems-openpgp-ca.org/blog/the-complete-guide-to-verifying-gems-with-rubygems-openpgp.html).
-
-## Installation on Ubuntu
-
-Use our [PPA](https://launchpad.net/~phusion.nl/+archive/misc):
-
-    sudo add-apt-repository ppa:phusion.nl/misc
-    sudo apt-get update
-    sudo apt-get install crash-watch
-
-## Installation on Debian
-
-Our Ubuntu Lucid packages are compatible with Debian 6.
-
-    sudo sh -c 'echo deb http://ppa.launchpad.net/phusion.nl/misc/ubuntu lucid main > /etc/apt/sources.list.d/phusion-misc.list'
-    sudo sh -c 'echo deb-src http://ppa.launchpad.net/phusion.nl/misc/ubuntu lucid main >> /etc/apt/sources.list.d/phusion-misc.list'
-    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 2AC745A50A212A8C
-    sudo apt-get update
-    sudo apt-get install crash-watch
-
-## Installation on RHEL, CentOS and Amazon Linux
-
- 1. Enable EPEL: [RHEL](https://fedoraproject.org/wiki/EPEL), [CentOS](http://www.centosblog.com/enable-epel-repo-on-centos-5-and-centos-6/), [Amazon Linux](http://aws.amazon.com/amazon-linux-ami/faqs/#epel).
- 2. Enable our YUM repository:
-
-        # RHEL 6, CentOS 6
-        curl -L https://oss-binaries.phusionpassenger.com/yumgems/phusion-misc/el.repo | \
-          sudo tee /etc/yum.repos.d/phusion-misc.repo
-        
-        # Amazon Linux
-        curl -L https://oss-binaries.phusionpassenger.com/yumgems/phusion-misc/amazon.repo | \
-          sudo tee /etc/yum.repos.d/phusion-misc.repo
-
- 3. Install our package:
-
-        sudo yum install rubygem-crash-watch
 
 ## Sample usage
 

@@ -30,7 +30,5 @@ CRASH_WATCH_FILES = [
 ]
 
 CRASH_WATCH_EXCLUDE_FILES = [
-  "Rakefile",
-  "debian.template/**/*",
-  "rpm/**/*"
+  "Rakefile"
 ]
