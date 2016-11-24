@@ -1,7 +1,10 @@
 source_root = File.expand_path(File.dirname(__FILE__) + "/..")
 $LOAD_PATH.unshift("#{source_root}/lib")
+$LOAD_PATH.unshift("#{source_root}/test")
 Thread.abort_on_exception = true
 
+require 'spec_helper'
+require 'crash_watch/utils'
 require 'crash_watch/gdb_controller'
 
 describe CrashWatch::GdbController do
@@ -113,10 +116,4 @@ describe CrashWatch::GdbController do
       expect(exit_info.backtrace).to match(/abort/)
     end
   end
-end
-
-RSpec.configure do |config|
-  config.expect_with :rspec do |c|
-    c.syntax = [:should, :expect]
-  end
-end
+end if CrashWatch::Utils.gdb_installed?
